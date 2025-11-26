@@ -22,3 +22,12 @@ pip install mediapipe==0.10.14
 # Other dependencies
 pip install sckit-learn scikit-image
 ```
+
+### To run yolo7_test.py
+[YOLOv7 documentation](https://docs.ultralytics.com/models/yolov7/#onnx-export)
+```sh
+pip install opencv-python torch torchvision
+# Download yolo7 pretrained weights
+curl -L -o yolov7.pt \
+  https://github.com/WongKinYiu/yolov7/releases/download/v0.1/yolov7.pt
+```
