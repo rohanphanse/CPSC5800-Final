@@ -1,0 +1,14 @@
+## Replace paths as appropriate. For 2 classes, label open_hand = 0, closed_hand = 1
+
+path: hand_dataset
+
+train: images/train
+val: images/val
+
+# Classes
+nc: 2
+
+names:
+  0: open_hand
+  1: closed_hand
+  
