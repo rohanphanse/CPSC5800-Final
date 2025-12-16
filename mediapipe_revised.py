@@ -2,8 +2,9 @@ import socket
 import time
 import cv2
 import mediapipe as mp
+import numpy as np
 
-# Unity socket config
+# unity socket config
 
 HOST = "127.0.0.1"
 PORT = 5005
@@ -18,7 +19,7 @@ def send_unity(cmd: str):
     except ConnectionRefusedError:
         print("[Python] Unity socket not active")
 
-# MediaPipe Setup
+# MediaPipe 
 
 mp_hands = mp.solutions.hands
 mp_draw = mp.solutions.drawing_utils
@@ -36,6 +37,7 @@ prev_wrist_y = None
 MOVE_THRESHOLD = 0.01
 SHOT_THRESHOLD = 0.05
 SHOT_COOLDOWN = 0.5 
+OPEN_THRESHOLD = 1.1
 
 LEFT_ZONE = 0.35
 RIGHT_ZONE = 0.65
@@ -51,7 +53,28 @@ def is_hand_open(hand_landmarks):
         if hand_landmarks.landmark[tip].y < hand_landmarks.landmark[pip].y:
             open_fingers += 1
 
-    return open_fingers >= 3 
+    return open_fingers >= 3
+
+def hand_is_open(lm) -> bool:
+    wrist = np.array([lm.landmark[0].x, lm.landmark[0].y])
+    tip_idxs = [4, 8, 12, 16, 20]
+    pip_idxs = [2, 6, 10, 14, 18]
+
+    ratios = []
+    for t_idx, p_idx in zip(tip_idxs, pip_idxs):
+        tip = np.array([lm.landmark[t_idx].x, lm.landmark[t_idx].y])
+        pip = np.array([lm.landmark[p_idx].x, lm.landmark[p_idx].y])
+        pip_dist = np.linalg.norm(pip - wrist)
+        if pip_dist < 1e-6:
+            continue
+        tip_dist = np.linalg.norm(tip - wrist)
+        ratios.append(tip_dist / pip_dist)
+
+    if not ratios:
+        return False
+
+    open_score = sum(ratios) / len(ratios)
+    return open_score >= OPEN_THRESHOLD
 
 def main():
     global prev_wrist_x, prev_wrist_y, last_shot_time
@@ -61,14 +84,14 @@ def main():
         print("Could not access webcam")
         return
 
-    print("MediaPipe → Unity control running. Press 'q' to quit.")
+    print("MediaPipe to Unity control running. Press 'q' to quit.")
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
-        # Flip for more intuitive left/right control
+        # accounting for mirrored webcame
         frame = cv2.flip(frame, 1)
 
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -87,8 +110,9 @@ def main():
             wrist_x = wrist.x
             wrist_y = wrist.y
 
-            hand_open = is_hand_open(hand_landmarks)
-
+            # hand_open = is_hand_open(hand_landmarks)
+            hand_open = hand_is_open(hand_landmarks)
+            
             if prev_wrist_x is not None:
                 dx = wrist_x - prev_wrist_x
                 dy = wrist_y - prev_wrist_y
@@ -114,7 +138,7 @@ def main():
             prev_wrist_x = wrist_x
             prev_wrist_y = wrist_y
 
-        cv2.imshow("MediaPipe Hands → Unity", frame)
+        cv2.imshow("MediaPipe Hands to Unity", frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
