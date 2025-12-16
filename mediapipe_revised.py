@@ -131,6 +131,7 @@ def main():
 
                 # OPEN HAND
                 else:
+                    send_unity("STOP")
                     if speed > SHOT_THRESHOLD and (now - last_shot_time) > SHOT_COOLDOWN:
                         send_unity("NORMAL_SHOT")
                         last_shot_time = now
