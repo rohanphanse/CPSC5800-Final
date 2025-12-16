@@ -2,14 +2,13 @@
 # Download dataset from Kaggle
 # Reassign letters to new labels 
 # Copy images to new label folders
-# Delete raw (full) dataset
 
 import os
 import shutil
 from kaggle.api.kaggle_api_extended import KaggleApi
 
-raw_dataset_dir = "./asl_3_dataset_raw"
-labeled_dataset_dir = "./asl_3_dataset_labeled"  
+raw_dataset_dir = "./data/asl_3_dataset_raw"
+labeled_dataset_dir = "./data/asl_3_dataset_labeled"  
 
 # Letters to include
 label_mapping = {
@@ -47,8 +46,3 @@ for letter, label in label_mapping.items():
 
     
 print("Done! Labeled dataset is ready at:", labeled_dataset_dir)
-
-## Remove raw dataset
-print(f"Removing raw dataset folder: {raw_dataset_dir}")
-shutil.rmtree(raw_dataset_dir)
-print("Raw folder removed.")

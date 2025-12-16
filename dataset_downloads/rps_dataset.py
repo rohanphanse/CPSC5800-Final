@@ -2,14 +2,13 @@
 # Download dataset from Kaggle
 # Reassign gestures to new labels 
 # Copy images to new label folders
-# Delete raw (full) dataset
 
 import os
 import shutil
 from kaggle.api.kaggle_api_extended import KaggleApi
 
-raw_dataset_dir = "./rps_dataset_raw"
-labeled_dataset_dir = "./rps_dataset_labeled"  
+raw_dataset_dir = "./data/rps_dataset_raw"
+labeled_dataset_dir = "./data/rps_dataset_labeled"  
 
 # Gestures to include
 label_mapping = {
@@ -47,8 +46,3 @@ for gesture, label in label_mapping.items():
 
     
 print("Done! Labeled dataset is ready at:", labeled_dataset_dir)
-
-## Remove raw dataset
-print(f"Removing raw dataset folder: {raw_dataset_dir}")
-shutil.rmtree(raw_dataset_dir)
-print("Raw folder removed.")
