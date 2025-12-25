@@ -20,7 +20,7 @@ pip install ultralytics
 # Install MediaPipe from Google
 pip install mediapipe==0.10.14
 # Other dependencies
-pip install scikit-learn scikit-image kaggle pandas huggingface-hub
+pip install scikit-learn scikit-image kaggle pandas pycocotools huggingface-hub
 ```
 
 ### GPU Environment Setup:
@@ -34,7 +34,7 @@ pip install ultralytics
 # Install MediaPipe from Google
 pip install mediapipe==0.10.14
 # Other dependencies
-pip install scikit-learn scikit-image kaggle pandas pycocotools
+pip install scikit-learn scikit-image kaggle pandas pycocotools huggingface-hub
 ```
 
 ## 0. Training and test datasets and model weights available on Hugging Face
