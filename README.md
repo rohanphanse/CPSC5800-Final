@@ -41,24 +41,28 @@ pip install scikit-learn scikit-image kaggle pandas pycocotools
 
 We provide all training datasets created in Step 1 and weights for the YOLO and ResNet models trained during Steps 2-4 in our Hugging Face repository: https://huggingface.co/datasets/rohanphanse/cpsc5800-hand-detection
 
-We provide our test datasets and trained model weights in the following Hugging Face repository: https://huggingface.co/datasets/rohanphanse/cpsc5800-hand-detection-test/tree/main
+We provide our test datasets and trained model weights in the following Hugging Face repository: https://huggingface.co/datasets/rohanphanse/cpsc5800-hand-detection-test
 
+Only the latter testing repository needs to be downloaded to run the evaluations.
 
 ```sh
 # Recommended: download dataset using git-xet (https://hf.co/docs/hub/git-xet)
 brew install git-xet
 git xet install
 
-# Download datasets (~25 GB in total, ~50 GB via git clone) and move the repository contents to the top level of your directory
+# Download training datasets (~25 GB in total, ~50 GB via git clone) and move the repository contents to the top level of your directory
 git clone --depth=1 https://huggingface.co/datasets/rohanphanse/cpsc5800-hand-detection
-git clone --depth=1 https://huggingface.co/datasets/rohanphanse/cpsc5800-hand-detection-test
 # Optional: delete the unnecessary .git folder (~25 GB) before moving the repository contents out
 # rm -rf cpsc5800-hand-detection/.git
-# rm -rf cpsc5800-hand-detection-test/.git
 
 # To avoid duplicate uploads, the HaGRIDv2 data (already in /yolo_hand) isn't included in /yolo_open_closed_hand
 # Run this script to copy it over
 python3 copy_over_hagridv2.py
+
+# Download test datasets (~10 GB in total, ~20 GB via git clone) and move the repository contents to the top level of your directory
+git clone --depth=1 https://huggingface.co/datasets/rohanphanse/cpsc5800-hand-detection-test
+# Optional: delete the unnecessary .git folder (~10 GB) before moving the repository contents out
+# rm -rf cpsc5800-hand-detection-test/.git
 ```
 
 ## 1. Download datasets and prepare bounding boxes
