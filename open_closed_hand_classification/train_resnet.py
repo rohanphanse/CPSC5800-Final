@@ -1,7 +1,6 @@
 import argparse
 import os
 from pathlib import Path
-from typing import Tuple
 
 import torch
 import torch.nn as nn
@@ -12,7 +11,7 @@ from torchvision.models import ResNet18_Weights, ResNet50_Weights
 from tqdm import tqdm
 
 
-def get_transforms(img_size: int, pretrained: bool) -> Tuple[transforms.Compose, transforms.Compose]:
+def get_transforms(img_size, pretrained):
     default_mean, default_std = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
     if pretrained:
         try:
@@ -43,7 +42,7 @@ def get_transforms(img_size: int, pretrained: bool) -> Tuple[transforms.Compose,
     return train_tfms, val_tfms
 
 
-def load_data(data_root: Path, batch_size: int, num_workers: int, img_size: int, pretrained: bool):
+def load_data(data_root, batch_size, num_workers, img_size, pretrained):
     train_dir = data_root / "train"
     val_dir = data_root / "val"
     train_tfms, val_tfms = get_transforms(img_size, pretrained)
@@ -68,7 +67,7 @@ def load_data(data_root: Path, batch_size: int, num_workers: int, img_size: int,
     return train_loader, val_loader, train_ds.classes
 
 
-def build_model(model_name: str, num_classes: int, pretrained: bool):
+def build_model(model_name, num_classes, pretrained):
     if model_name == "resnet18":
         weights = ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
         model = models.resnet18(weights=weights)

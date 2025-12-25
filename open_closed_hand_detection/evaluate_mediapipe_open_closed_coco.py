@@ -1,8 +1,5 @@
-import argparse
 import json
 import os
-from pathlib import Path
-from typing import Dict, List, Tuple
 
 import cv2
 import mediapipe as mp
@@ -26,21 +23,22 @@ MAX_HANDS = 2
 MIN_DET_CONF = 0.15
 BOX_EXPAND = 0.1
 OPEN_THRESHOLD = 1.1
+OUTPUT_DIR = "mediapipe_coco_eval_open_closed"
 
 
-def map_label(dataset: str, lbl: int) -> int:
+def map_label(dataset, lbl):
     if dataset == "hagridv2":
         return 1 if lbl == 1 else 0
     return 1 if lbl == 1 else 0
 
 
-def load_gt(csv_path: Path) -> Tuple[List[Dict], List[Dict]]:
+def load_gt(csv_path):
     images = []
     annotations = []
-    img_id_map: Dict[str, int] = {}
+    img_id_map = {}
     ann_id = 1
 
-    with csv_path.open("r", encoding="utf-8") as f:
+    with open(csv_path, "r", encoding="utf-8") as f:
         header = f.readline().strip().split(",")
         cols = {name: idx for idx, name in enumerate(header)}
         for line in f:
@@ -88,7 +86,7 @@ def load_gt(csv_path: Path) -> Tuple[List[Dict], List[Dict]]:
     return images, annotations
 
 
-def mediapipe_boxes_and_class(image, width: int, height: int) -> List[Tuple[Tuple[float, float, float, float], int, float]]:
+def mediapipe_boxes_and_class(image, width, height):
     results = HANDS.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     boxes = []
     if results.multi_hand_landmarks:
@@ -132,7 +130,7 @@ def mediapipe_boxes_and_class(image, width: int, height: int) -> List[Tuple[Tupl
     return boxes
 
 
-def run_eval(name: str, csv_path: Path, output_dir: Path):
+def run_eval(name, csv_path, output_dir):
     images, annotations = load_gt(csv_path)
     if not images:
         print(f"{name}: no GT loaded, skipping.")
@@ -143,7 +141,7 @@ def run_eval(name: str, csv_path: Path, output_dir: Path):
     missing = 0
     for img in tqdm(images, desc=f"MediaPipe {name}"):
         img_rel = img["file_name"]
-        src = img_rel if os.path.isabs(img_rel) else str(Path(os.getcwd()) / img_rel)
+        src = img_rel if os.path.isabs(img_rel) else os.path.join(os.getcwd(), img_rel)
         if not os.path.exists(src):
             missing += 1
             continue
@@ -175,11 +173,13 @@ def run_eval(name: str, csv_path: Path, output_dir: Path):
             {"id": 1, "name": "closed"},
         ],
     }
-    gt_path = output_dir / f"{name}_gt.json"
-    dt_path = output_dir / f"{name}_dt.json"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    gt_path.write_text(json.dumps(coco_gt), encoding="utf-8")
-    dt_path.write_text(json.dumps(preds), encoding="utf-8")
+    os.makedirs(output_dir, exist_ok=True)
+    gt_path = os.path.join(output_dir, f"{name}_gt.json")
+    dt_path = os.path.join(output_dir, f"{name}_dt.json")
+    with open(gt_path, "w", encoding="utf-8") as f:
+        f.write(json.dumps(coco_gt))
+    with open(dt_path, "w", encoding="utf-8") as f:
+        f.write(json.dumps(preds))
 
     coco = COCO(str(gt_path))
     coco_dt = coco.loadRes(str(dt_path))
@@ -193,22 +193,15 @@ def run_eval(name: str, csv_path: Path, output_dir: Path):
     )
 
 
-def parse_args():
-    ap = argparse.ArgumentParser(description="Evaluate MediaPipe open/closed with COCO mAP.")
-    ap.add_argument("--output", type=Path, default=Path("mediapipe_coco_eval_open_closed"), help="Where to write GT/pred JSONs.")
-    return ap.parse_args()
-
-
 def main():
-    args = parse_args()
     for ds in DEFAULT_DATASETS:
-        csv_path = Path(ds["csv"])
-        if not csv_path.is_absolute():
-            csv_path = Path(os.getcwd()) / csv_path
-        if not csv_path.exists():
+        csv_path = ds["csv"]
+        if not os.path.isabs(csv_path):
+            csv_path = os.path.join(os.getcwd(), csv_path)
+        if not os.path.exists(csv_path):
             print(f"{ds['name']}: missing CSV at {csv_path}, skipping.")
             continue
-        run_eval(ds["name"], csv_path, args.output)
+        run_eval(ds["name"], csv_path, OUTPUT_DIR)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,6 @@ import argparse
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import cv2
 import mediapipe as mp
@@ -30,10 +29,10 @@ MIN_DET_CONF = 0.15
 BOX_EXPAND = 0.1
 
 
-def load_gt(csv_path: Path) -> Tuple[List[Dict], List[Dict]]:
+def load_gt(csv_path):
     images = []
     annotations = []
-    img_id_map: Dict[str, int] = {}
+    img_id_map = {}
     ann_id = 1
 
     with csv_path.open("r", encoding="utf-8") as f:
@@ -81,7 +80,7 @@ def load_gt(csv_path: Path) -> Tuple[List[Dict], List[Dict]]:
     return images, annotations
 
 
-def mediapipe_boxes(image, width: int, height: int) -> List[Tuple[Tuple[float, float, float, float], float]]:
+def mediapipe_boxes(image, width, height):
     results = HANDS.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     boxes = []
     if results.multi_hand_landmarks:
@@ -106,7 +105,7 @@ def mediapipe_boxes(image, width: int, height: int) -> List[Tuple[Tuple[float, f
     return boxes
 
 
-def run_eval(name: str, csv_path: Path, output_dir: Path):
+def run_eval(name, csv_path, output_dir):
     images, annotations = load_gt(csv_path)
     if not images:
         print(f"{name}: no GT loaded, skipping.")

@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
 import argparse
 import csv
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import cv2
 from PIL import Image
@@ -14,7 +12,7 @@ from torchvision.models import ResNet18_Weights, ResNet50_Weights
 from tqdm import tqdm
 
 # Label mapping: 0=open, 1=closed
-def map_label(dataset: str, lbl: int) -> int:
+def map_label(dataset, lbl):
     if dataset == "hagridv2":
         return 1 if lbl == 1 else 0
     return 1 if lbl == 1 else 0
@@ -30,7 +28,7 @@ def clamp_bbox(xmin, ymin, xmax, ymax, w, h):
     return int(xmin), int(ymin), int(xmax), int(ymax)
 
 
-def load_records(csv_path: Path) -> List[Dict]:
+def load_records(csv_path):
     records = []
     with csv_path.open("r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -60,7 +58,7 @@ def load_records(csv_path: Path) -> List[Dict]:
     return records
 
 
-def build_model(model_name: str, num_classes: int, pretrained: bool):
+def build_model(model_name, num_classes, pretrained):
     if model_name == "resnet18":
         weights = ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
         model = models.resnet18(weights=weights)
@@ -73,7 +71,7 @@ def build_model(model_name: str, num_classes: int, pretrained: bool):
     return model
 
 
-def get_transform(img_size: int, pretrained: bool):
+def get_transform(img_size, pretrained):
     default_mean, default_std = (0.485, 0.456, 0.406), (0.229, 0.224, 0.225)
     if pretrained:
         try:
@@ -94,7 +92,7 @@ def get_transform(img_size: int, pretrained: bool):
     )
 
 
-def evaluate(model, records: List[Dict], tfm, device, label_to_idx: Dict[str, int]) -> Tuple[int, int, int]:
+def evaluate(model, records, tfm, device, label_to_idx):
     model.eval()
     correct = 0
     total = 0

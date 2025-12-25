@@ -2,13 +2,13 @@ import csv
 import shutil
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import cv2
 from tqdm import tqdm
 
-REPO_ROOT = Path(__file__).resolve().parent
+REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_ROOT = REPO_ROOT / "open_closed_classification"
+YOLO_ROOT = REPO_ROOT / "yolo_open_closed_hand" / "images"
 
 CSV_MAP = {
     "train": [
@@ -23,16 +23,28 @@ CSV_MAP = {
 }
 
 DATASET_BASES = {
-    "hagridv2": REPO_ROOT / "data" / "hagridv2",
-    "asl_1_dataset_labeled": REPO_ROOT / "data" / "asl_1_dataset_labeled",
-    "asl_2_dataset_labeled": REPO_ROOT / "data" / "asl_2_dataset_labeled",
-    "rps_dataset_labeled": REPO_ROOT / "data" / "rps_dataset_labeled",
+    "hagridv2": {
+        "train": YOLO_ROOT / "train" / "hagridv2",
+        "val": YOLO_ROOT / "val" / "hagridv2"
+    },
+    "asl_1_dataset_labeled": {
+        "train": YOLO_ROOT / "train" / "asl_1_dataset_labeled",
+        "val": YOLO_ROOT / "val" / "asl_1_dataset_labeled",
+    },
+    "asl_2_dataset_labeled": {
+        "train": YOLO_ROOT / "train" / "asl_2_dataset_labeled",
+        "val": YOLO_ROOT / "val" / "asl_2_dataset_labeled",
+    },
+    "rps_dataset_labeled": {
+        "train": YOLO_ROOT / "train" / "rps_dataset_labeled",
+        "val": YOLO_ROOT / "val" / "rps_dataset_labeled"
+    },
 }
 
 CLASS_NAMES = {0: "open", 1: "closed"}
 
-def load_csv_records(csv_path: Path) -> List[Dict]:
-    records: List[Dict] = []
+def load_csv_records(csv_path):
+    records = []
     if not csv_path.exists():
         print(f"Skip missing CSV: {csv_path}")
         return records
@@ -62,22 +74,29 @@ def load_csv_records(csv_path: Path) -> List[Dict]:
     return records
 
 
-def resolve_image_path(rel_path: str, dataset: str) -> Path | None:
+def resolve_image_path(rel_path, dataset, split):
     rp = Path(rel_path)
-    base = DATASET_BASES.get(dataset)
-    if base:
-        try:
-            base_rel = base.relative_to(REPO_ROOT)
-            if rp.parts[: len(base_rel.parts)] == base_rel.parts:
-                rp = rp.relative_to(base_rel)
-        except ValueError:
-            pass
-        cand = (base / rp).resolve()
-        return cand if cand.exists() else None
+    base_map = DATASET_BASES.get(dataset)
+    if base_map:
+        base = base_map.get(split)
+        if base:
+            parts = rp.parts
+            if len(parts) > 1 and parts[0] in ("data", "data_good") and parts[1] == dataset:
+                rp = Path(*parts[2:])
+            elif len(parts) > 0 and parts[0] == dataset:
+                rp = Path(*parts[1:])
+            try:
+                base_rel = base.relative_to(REPO_ROOT)
+                if rp.parts[: len(base_rel.parts)] == base_rel.parts:
+                    rp = rp.relative_to(base_rel)
+            except ValueError:
+                pass
+            cand = (base / rp).resolve()
+            return cand if cand.exists() else None
     return None
 
 
-def clamp_bbox(xmin: float, ymin: float, xmax: float, ymax: float, w: float, h: float) -> Tuple[int, int, int, int] | None:
+def clamp_bbox(xmin, ymin, xmax, ymax, w, h):
     xmin = max(0.0, min(xmin, w - 1))
     ymin = max(0.0, min(ymin, h - 1))
     xmax = max(0.0, min(xmax, w - 1))
@@ -87,7 +106,7 @@ def clamp_bbox(xmin: float, ymin: float, xmax: float, ymax: float, w: float, h: 
     return int(xmin), int(ymin), int(xmax), int(ymax)
 
 
-def label_id(dataset: str, label_value) -> int:
+def label_id(dataset, label_value):
     if dataset == "hagridv2":
         try:
             lv = int(label_value)
@@ -101,7 +120,7 @@ def label_id(dataset: str, label_value) -> int:
         return 0
 
 
-def process_split(split: str, records: List[Dict]):
+def process_split(split, records):
     out_root = OUTPUT_ROOT / split
     for cls in CLASS_NAMES.values():
         (out_root / cls).mkdir(parents=True, exist_ok=True)
@@ -113,7 +132,7 @@ def process_split(split: str, records: List[Dict]):
         dataset = rec.get("dataset", "")
         if not rel_path:
             continue
-        src = resolve_image_path(rel_path, dataset)
+        src = resolve_image_path(rel_path, dataset, split)
         if src is None or not src.exists():
             continue
 
@@ -152,7 +171,7 @@ def main():
         shutil.rmtree(OUTPUT_ROOT)
     OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
     for split, csvs in CSV_MAP.items():
-        all_records: List[Dict] = []
+        all_records = []
         for csv_path in csvs:
             all_records.extend(load_csv_records(csv_path))
         if not all_records:

@@ -1,9 +1,7 @@
-#!/usr/bin/env python3
 import argparse
 import csv
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import cv2
 import mediapipe as mp
@@ -15,16 +13,16 @@ MIN_DET_CONF = 0.15
 OPEN_THRESHOLD = 1.1
 
 
-def map_label(dataset: str, lbl: int) -> int:
+def map_label(dataset, lbl):
     if dataset == "hagridv2":
         return 1 if lbl == 1 else 0
     return 1 if lbl == 1 else 0
 
 
-def load_records(csv_path: Path) -> Dict[str, Dict]:
-    grouped: Dict[str, Dict] = {}
-    per_image_count: Dict[str, int] = {}
-    rows_by_image: Dict[str, Dict] = {}
+def load_records(csv_path):
+    grouped = {}
+    per_image_count = {}
+    rows_by_image = {}
     with csv_path.open("r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -49,7 +47,7 @@ def load_records(csv_path: Path) -> Dict[str, Dict]:
     return grouped
 
 
-def mediapipe_open_closed(image) -> int | None:
+def mediapipe_open_closed(image):
     results = MP_HANDS.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     if not results.multi_hand_landmarks:
         return None
@@ -74,7 +72,7 @@ def mediapipe_open_closed(image) -> int | None:
     return 0 if open_score >= OPEN_THRESHOLD else 1
 
 
-def evaluate(records: Dict[str, Dict]) -> Tuple[int, int, int]:
+def evaluate(records):
     correct = 0
     total = 0
     missing = 0

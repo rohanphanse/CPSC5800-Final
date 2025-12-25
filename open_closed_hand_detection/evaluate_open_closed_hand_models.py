@@ -7,7 +7,6 @@ import cv2
 from tqdm import tqdm
 from ultralytics import YOLO
 
-# Edit these paths if your files live elsewhere.
 MODEL_PATHS = {
     "train8": "runs/detect/train8/weights/best.pt",
     "train9": "runs/detect/train9/weights/best.pt",
