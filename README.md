@@ -1,5 +1,9 @@
 # CPSC 5800 Final Project: Real-Time Hand Tracking for Gesture-Based Tennis Simulation
 
+## Report
+
+[Link to PDF of final project report](https://github.com/rohanphanse/CPSC5800-Final/blob/main/CV_Final_Project.pdf)
+
 ## Setup
 
 Create the following virtual enviroments to install the required packages using Python version >=3.8 (recommended by [Ultralytics](https://docs.ultralytics.com/quickstart/)).
